@@ -1,4 +1,4 @@
-// package BuilderPattern;
+package BuilderPattern;
 
 public class BuilderPattern {
 
@@ -14,7 +14,7 @@ public class BuilderPattern {
         }
 
     public String toString(){
-        return "Pizza with "+ sauce +" ,"+ toppings+" , "+base;
+        return "Pizza with "+ sauce +" ,"+ toppings+" , "+base +".";
     }
     static class PizzaBuilder{
          private String sauce;
