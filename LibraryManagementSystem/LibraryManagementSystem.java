@@ -1,5 +1,6 @@
-package LibraryManagementSystem;
+// package LibraryManagementSystem;
 import java.time.LocalDateTime;
+import java.time.format.SignStyle;
 import java.util.*;
 import java.util.ArrayList;
 
@@ -31,15 +32,6 @@ public class LibraryManagementSystem {
             System.out.print(b+" ");
            }
         }
-
-        public void borrowBook(Book b){
-            b.decrementCnt();
-            System.out.println("Borrowed book :"+ b);
-        }
-        public void returnBook(Book b){
-            b.incrementCnt();
-            System.out.println("Returned book :"+b);
-        }
     }
 
     static class Book{
@@ -59,7 +51,7 @@ public class LibraryManagementSystem {
             return bookName+"with bookid no "+ bookId;
         }
 
-        public int getBookId(int id){
+        public int getBookId(){
                return bookId;
         }
         public String getBookName(){
@@ -89,9 +81,24 @@ public class LibraryManagementSystem {
 
     }
 
+    interface Observer{
+        void notify(String msg);
+    }
+    static class notifyLibraryManager implements Observer{
+        public void notify(String msg){
+            System.err.println("Notification to LibraryManager "+ msg);
+        }
+    }
+
+     static class notifyUser implements Observer{
+        public void notify(String msg){
+            System.err.println("Notification to User "+ msg);
+        }
+    }
     static class LibraryManager{
         private static LibraryManager instance;
         List<Transaction> transactions=new ArrayList<>();
+        List<Observer> observers=new ArrayList<>();
         private LibraryManager(){}
         public static LibraryManager getInstance(){
             if(instance==null){
@@ -100,11 +107,48 @@ public class LibraryManagementSystem {
             return instance;
         }
 
+        public void addObserver(Observer o){
+            observers.add(o);
+        }
+
+        public void removeObserver(Observer o){
+            observers.remove(o);
+        }
+
+         public void borrowBook(User u,Book b){
+            if(!b.isBookAvailable()){
+                System.out.println("Book not available");
+                return;
+            }
+            b.decrementCnt();
+            u.borrowedBooks.add(b);
+            Transaction t1=new Transaction(u, b,status.BORROWED);
+              for(Observer o:observers){
+               o.notify("Boorrowed the book :"+ b+ "by user :"+ u);
+               System.out.println();
+              }
+            transactions.add(t1);
+        }
+        public void returnBook(User u,Book b){
+            if(!u.borrowedBooks.contains(b)){
+                System.out.println("User didnt borrowed this book");
+                return;
+            }
+            b.incrementCnt();
+             Transaction t2=new Transaction(u, b,status.RETURNED);
+             transactions.add(t2);
+           for(Observer o:observers){
+               o.notify("returned the book :"+ b+ "by user :"+ b);
+               System.out.println();
+              }
+        }
+
         public void getAllTransactions(){
              for(Transaction t:transactions){
                 System.out.print(t);
              }
         }
+
 
     }
 
@@ -122,10 +166,11 @@ public class LibraryManagementSystem {
 
       
       Transaction(User u,Book b,status transStatus){
+        this.tid=UUID.randomUUID().toString();
         this.user=u;
         this.book=b;
         this.transStatus=transStatus;
-        if(transStatus.equals("borrowed")){
+        if(transStatus==status.BORROWED){
             borrowedDate=LocalDateTime.now();
         }
         else{
@@ -193,22 +238,22 @@ public class LibraryManagementSystem {
         Book b1=new Book("c",21,"cse",10);
          Book b2=new Book("cpp",15,"cse",11);
          Library vitap=new Library();
+         
          LibraryManagementSystem lms=new LibraryManagementSystem();
          LibraryManager manager=LibraryManager.getInstance();
+          Observer o1=new notifyLibraryManager();
+     Observer o2=new notifyUser();
+     manager.addObserver(o2);
+     manager.addObserver(o1);
         vitap.addBook(b2);
         vitap.addBook(b1);
         vitap.addUser(u2);
         vitap.addUser(u1);
-       u1.borrowBook(b2);
-       u1.borrowBook(b1);
       System.out.println( b1.noOfAvailableBooks());
-       Transaction t1=new Transaction(u1, b2, status.BORROWED);
-       System.out.println(t1.getBorrowedDate());
-      u1.returnBook(b2);
-     Transaction t2=new Transaction(u1, b2, status.RETURNED);
-      System.out.println(t1.getReturnedDate());
+        manager.borrowBook(u2, b2);
+        manager.borrowBook(u2, b1);
+        manager.returnBook(u2, b2);
      manager.getAllTransactions();
-
     }
 
 }
