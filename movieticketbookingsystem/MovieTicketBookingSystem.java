@@ -303,7 +303,7 @@ public class MovieTicketBookingSystem {
               if(t.isAvailable() && s.isOccupied() && sno.getSeatStatus()==seatStatus.AVAILABLE){
                 int amt=s.getPrice();
                 sno.updateStatus(seatStatus.BLOCKED);
-                     Ticket ticket=new Ticket(ticketCounter, s.getcurrMoviePlaying().getmovieName(),s.getPrice(), LocalDateTime.now(),LocalDateTime.now().plusHours(4));
+                     Ticket ticket=new Ticket(ticketCounter++, s.getcurrMoviePlaying().getmovieName(),s.getPrice(), LocalDateTime.now(),LocalDateTime.now().plusHours(4));
                  return amt; 
               }
               else{
